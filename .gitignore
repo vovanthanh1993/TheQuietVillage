@@ -42,6 +42,7 @@ Thumbs.db
 # Visual Studio Code
 .vscode/
 .history/
+.vs/
 
 # Unity Cloud Build
 *.cloud
