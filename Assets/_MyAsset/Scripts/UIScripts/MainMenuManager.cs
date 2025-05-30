@@ -34,7 +34,7 @@ public class MainMenuManager : MonoBehaviour
         settingsMenu.SetActive(true);
     }
 
-    public void BtnExitClick()
+    public void QuitGame()
     {
         exitMenu.SetActive(true);
         mainMenu.SetActive(false);
@@ -45,7 +45,7 @@ public class MainMenuManager : MonoBehaviour
         mainMenu.SetActive(true);
         exitMenu.SetActive(false);
     }
-    public void QuitGame()
+    public void BtnExitClick()
     {
         AudioManager.Instance.ClickSound();
         Application.Quit();
