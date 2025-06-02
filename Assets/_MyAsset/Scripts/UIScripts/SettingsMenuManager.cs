@@ -3,7 +3,10 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
+using static UnityEngine.Rendering.DebugUI;
 
 public class SettingsMenuManager : MonoBehaviour
 {
@@ -28,9 +31,12 @@ public class SettingsMenuManager : MonoBehaviour
 
     [SerializeField] private Slider mouseHorizontalSlider;
     [SerializeField] private Slider mouseVerticalSlider;
+    [SerializeField] private Slider brightnessSlider;
+    [SerializeField] private Volume globalVolume;
     [SerializeField] private float mouseHorizontal;
     [SerializeField] private float mouseVertical;
     [SerializeField] private float damageMultiplierSetting;
+    private ColorAdjustments colorAdjustments;
 
 
     public static SettingsMenuManager Instance { get; private set; }
@@ -43,7 +49,7 @@ public class SettingsMenuManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -57,6 +63,7 @@ public class SettingsMenuManager : MonoBehaviour
         controlPanel.SetActive(false);
         videoPanel.SetActive(false);
         keyPanel.SetActive(false);
+        AudioManager.Instance.ClickSound();
     }
     public void ShowControlPanel()
     {
@@ -64,6 +71,7 @@ public class SettingsMenuManager : MonoBehaviour
         controlPanel.SetActive(true);
         videoPanel.SetActive(false);
         keyPanel.SetActive(false);
+        AudioManager.Instance.ClickSound();
     }
     public void ShowVideoPanel()
     {
@@ -71,6 +79,7 @@ public class SettingsMenuManager : MonoBehaviour
         controlPanel.SetActive(false);
         videoPanel.SetActive(true);
         keyPanel.SetActive(false);
+        AudioManager.Instance.ClickSound();
     }
 
     public void ShowKeyPanel()
@@ -79,6 +88,7 @@ public class SettingsMenuManager : MonoBehaviour
         controlPanel.SetActive(false);
         videoPanel.SetActive(false);
         keyPanel.SetActive(true);
+        AudioManager.Instance.ClickSound();
     }
     IEnumerator Start()
     {
@@ -141,11 +151,34 @@ public class SettingsMenuManager : MonoBehaviour
         mouseVerticalSlider.onValueChanged.AddListener(SetMouseVertical);
 
         //Game difficulty
-        int gameDifficulty = PlayerPrefs.GetInt("GameDifficulty", 1);
-        gameDifficultyDropdown.value = gameDifficulty;
-        gameDifficultyDropdown.RefreshShownValue();
-        HandleDifficultyChange(gameDifficulty);
-        gameDifficultyDropdown.onValueChanged.AddListener(HandleDifficultyChange);
+        if(gameDifficultyDropdown)
+        {
+            int gameDifficulty = PlayerPrefs.GetInt("GameDifficulty", 1);
+            gameDifficultyDropdown.value = gameDifficulty;
+            gameDifficultyDropdown.RefreshShownValue();
+            HandleDifficultyChange(gameDifficulty);
+            gameDifficultyDropdown.onValueChanged.AddListener(HandleDifficultyChange);
+        }
+        LoadBrightnessSlider();
+    }
+
+    private void LoadBrightnessSlider()
+    {
+        globalVolume.profile.TryGet(out colorAdjustments);
+        colorAdjustments.postExposure.overrideState = true;
+        if (PlayerPrefs.HasKey("Brightness"))
+        {
+            float brightnessSetting = PlayerPrefs.GetFloat("Brightness", 1);
+            brightnessSlider.value = brightnessSetting;
+            colorAdjustments.postExposure.value = brightnessSetting;
+        }
+        brightnessSlider.onValueChanged.AddListener(SetBrightnessSilder);
+    }
+
+    private void SetBrightnessSilder(float value)
+    {
+        colorAdjustments.postExposure.value = value;
+        PlayerPrefs.SetFloat("Brightness", value);
     }
 
     public void HandleDifficultyChange(int index)
@@ -198,6 +231,7 @@ public class SettingsMenuManager : MonoBehaviour
         settingsMenu.SetActive(false);
         mainMenu.SetActive(true);
         AudioManager.Instance.ClickSound();
+        ShowGamePanel();
     }
 
     // Video setting
