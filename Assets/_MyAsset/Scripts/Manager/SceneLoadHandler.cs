@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Unity.Burst.CompilerServices;
 
 public class SceneLoadHandler : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class SceneLoadHandler : MonoBehaviour
     private IEnumerator LoadRoutine(string sceneName)
     {
         yield return null;
-        Destroy(PlayerManager.Instance.gameObject);
+        Destroy(PlayerController.Instance.gameObject);
         Destroy(CameraManager.Instance.gameObject);
         SceneManager.LoadScene(sceneName);
     }
@@ -44,20 +45,19 @@ public class SceneLoadHandler : MonoBehaviour
     private IEnumerator DelayedInit()
     {
         yield return null; // Đợi 1 frame
-        //AudioManager.Instance.Reset();
-        PlayerManager.Instance.InitPlayer();
+        PlayerController.Instance.InitPlayer();
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            LoadSceneWithInit("GamePlayLv1");
+            LoadSceneWithInit(GameConstants.SCENE_GAMEPLAY_LV1);
         }
 
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            LoadSceneWithInit("GamePlayLv2");
+            LoadSceneWithInit(GameConstants.SCENE_GAMEPLAY_LV1);
         }
 
     }

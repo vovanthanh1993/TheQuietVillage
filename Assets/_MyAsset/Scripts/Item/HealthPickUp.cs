@@ -41,12 +41,12 @@ public class HealthPickUp : MonoBehaviour
 
     void Update()
     {
-        currentHealth = PlayerHealth.Instance.GetHealth();
+        currentHealth = PlayerController.Instance.PlayerHealth.GetHealth();
         if (inReach && InputManager.Instance.IsInteract() && currentHealth < 100)
         {
             inReach = false;
             AudioManager.Instance.HealthPickupSound();
-            PlayerHealth.Instance.AddHealth(addHealth);
+            PlayerController.Instance.PlayerHealth.UpdateHealth(addHealth);
             GUIManager.Instance.ShowScreenHealing();
             GetComponent<BoxCollider>().enabled = false;
             GetComponent<MeshRenderer>().enabled = false;

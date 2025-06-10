@@ -54,4 +54,20 @@ public class WeaponsSwitch : MonoBehaviour
             //object04.SetActive(true);
         }
     }
+
+    void OnEnable()
+    {
+        PlayerEvents.OnDie += DisableAllWeapons;
+    }
+
+    void OnDisable()
+    {
+        PlayerEvents.OnDie -= DisableAllWeapons;
+    }
+
+    private void DisableAllWeapons() {
+        object01.SetActive(false);
+        object02.SetActive(false);
+        object03.SetActive(false);
+    }    
 }

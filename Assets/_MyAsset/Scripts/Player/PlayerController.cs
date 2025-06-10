@@ -9,32 +9,32 @@ public class PlayerController : MonoBehaviour
 {
     [Space]
     [Header("Input")]
-    [SerializeField]  private float smoothInputSpeed = 0.01f;
+    [SerializeField] private float smoothInputSpeed = 0.01f;
     private Vector2 currentInputVector;
     private Vector2 smoothInputVelocity;
-    // Movement
-    #region
+
+    #region Movement
     [Space]
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 3f;
     [SerializeField] private float walkBackSpeed = 2f;
     [SerializeField] private float runSpeed = 7f;
     [SerializeField] private float runBackSpeed = 5f;
-    [SerializeField] private float crouchSpeed = 2;
+    [SerializeField] private float crouchSpeed = 2f;
     [SerializeField] private float crouchBackSpeed = 1f;
     #endregion
 
     private CharacterController characterController;
     private Vector3 moveDirection;
-    private float currentSpeed = 3;
+    private float currentSpeed = 3f;
     private bool isWalking;
     private bool isSprinting;
     private bool isCrouching;
 
-    #region
+    #region Animator & Gravity
     [Space]
     [Header("Animator")]
-    [SerializeField]  private Animator playerAnimator;
+    [SerializeField] private Animator playerAnimator;
 
     [Space]
     [Header("Gravity")]
@@ -43,17 +43,16 @@ public class PlayerController : MonoBehaviour
     private float velocityY;
     #endregion
 
-    // Jump
-    #region
+    #region Jump
     [Space]
-    [Header ("Jump")]
+    [Header("Jump")]
     [SerializeField] private float jumpForce = 5f;
     private float lastGroundY;
     public float minFallHeight = 0.0f;
     public bool isFalling = false;
     #endregion
-    //Look
-    #region
+
+    #region Look
     [Header("Look")]
     [SerializeField] private Transform centerSpinePos;
     [SerializeField] private float sensX;
@@ -62,7 +61,7 @@ public class PlayerController : MonoBehaviour
     private float yRotation;
     #endregion
 
-    #region
+    #region Camera
     [Space]
     [Header("Camera")]
     [SerializeField] private Transform cameraHolder;
@@ -70,28 +69,43 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     public static PlayerController Instance { get; private set; }
+    private PlayerHealth playerHealth;
+    public  PlayerHealth PlayerHealth => playerHealth;
+
+    private PlayerStamina stamina;
+    public bool IsWalking { get; set; }
+    public bool IsSprinting { get; set; }
+    public bool IsCrouching { get; set; }
+    
+    public PlayerStamina Stamina { get; set; }
 
     private Vector3 previousPosition;
     private float horizontalSpeed;
-    public float baseStepSpeed = 0.5f;        // thời gian giữa các bước khi đi bộ
-    public float sprintMultiplier = 0.6f;     // giảm thời gian khi chạy
+    public float baseStepSpeed = 0.5f;
+    public float sprintMultiplier = 0.6f;
     private float stepTimer;
 
+    #region Camera Bobbing
     [Header("Camera Bobbing")]
     [SerializeField] private float bobFrequency = 8f;
     [SerializeField] private float bobAmplitude = 0.05f;
     private Vector3 cameraInitialLocalPos;
     private float bobTimer;
     private Vector2 crossHairInitialAnchoredPos;
+    #endregion
+
+    
+
     void Start()
     {
+        characterController = GetComponent<CharacterController>();
+        playerHealth = GetComponent<PlayerHealth>();
         cameraInitialLocalPos = cameraHolder.localPosition;
-
         RectTransform crossRect = GUIManager.Instance.crosshair.GetComponent<RectTransform>();
         crossHairInitialAnchoredPos = crossRect.anchoredPosition;
-
         previousPosition = transform.position;
     }
+
     private void HandleCameraBobbing()
     {
         RectTransform crossRect = GUIManager.Instance.crosshair.GetComponent<RectTransform>();
@@ -106,17 +120,17 @@ public class PlayerController : MonoBehaviour
             Vector3 bobPosition = cameraInitialLocalPos + new Vector3(bobOffsetX, bobOffsetY, 0f);
             cameraHolder.localPosition = Vector3.Lerp(cameraHolder.localPosition, bobPosition, Time.deltaTime * 5f);
 
-            Vector2 bobAnchoredPos = crossHairInitialAnchoredPos + new Vector2(bobOffsetX * 50f, bobOffsetY * 50f); // nhân to lên cho dễ thấy
+            Vector2 bobAnchoredPos = crossHairInitialAnchoredPos + new Vector2(bobOffsetX * 50f, bobOffsetY * 50f);
             crossRect.anchoredPosition = Vector2.Lerp(crossRect.anchoredPosition, bobAnchoredPos, Time.deltaTime * 5f);
         }
         else
         {
             bobTimer = 0f;
             cameraHolder.localPosition = Vector3.Lerp(cameraHolder.localPosition, cameraInitialLocalPos, Time.deltaTime * 5f);
-
             crossRect.anchoredPosition = Vector2.Lerp(crossRect.anchoredPosition, crossHairInitialAnchoredPos, Time.deltaTime * 5f);
         }
     }
+
     public void HandleFootSteps()
     {
         if (characterController.isGrounded
@@ -130,7 +144,7 @@ public class PlayerController : MonoBehaviour
                 interval *= sprintMultiplier;
             }
 
-            interval = Mathf.Max(0.15f, interval); // giới hạn tối thiểu
+            interval = Mathf.Max(0.15f, interval);
 
             stepTimer -= Time.deltaTime;
 
@@ -146,7 +160,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     private void UpdateHorizontalSpeed()
     {
         Vector3 currentPosition = transform.position;
@@ -157,11 +170,9 @@ public class PlayerController : MonoBehaviour
         previousPosition = currentPosition;
     }
 
-
     private void Awake()
     {
         Cursor.visible = false;
-        // Nếu đã có một instance khác, thì hủy bản mới
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -169,26 +180,20 @@ public class PlayerController : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Nếu muốn player không bị hủy khi load scene mới
-        characterController = GetComponent<CharacterController>();
+        DontDestroyOnLoad(gameObject);
         playerCamera = Camera.main;
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    
-    // Update is called once per frame
+
     void Update()
     {
         if (LoaderManager.instance.isLoading) return;
         Gravity();
         HanleSpeeds();
         HandleInputAndMove();
-        //Jump();
-        //HanleAnimation();
         Look();
-        UpdateHorizontalSpeed();   // ➕ thêm dòng này
+        UpdateHorizontalSpeed();
         HandleFootSteps();
         HandleCameraBobbing();
-
     }
 
     private void Gravity()
@@ -217,11 +222,12 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         playerAnimator.SetBool("IsJumping", false);
     }
+
     private void HanleAnimation()
     {
-        playerAnimator.SetBool("IsRunning", isSprinting);
-        playerAnimator.SetBool("IsWalking", isWalking);
-        playerAnimator.SetBool("IsCrouching", isCrouching);
+        playerAnimator.SetBool("IsRunning", IsSprinting);
+        playerAnimator.SetBool("IsWalking", IsWalking);
+        playerAnimator.SetBool("IsCrouching", IsCrouching);
         CheckGround();
         playerAnimator.SetBool("IsFalling", isFalling);
 
@@ -231,79 +237,75 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGround()
     {
-        if(!characterController.isGrounded)
+        if (!characterController.isGrounded)
         {
             lastGroundY = transform.position.y;
-            if((lastGroundY - transform.position.y) > minFallHeight)
+            if ((lastGroundY - transform.position.y) > minFallHeight)
             {
                 isFalling = true;
             }
-        } else { isFalling = false;};
+        }
+        else
+        {
+            isFalling = false;
+        }
     }
+
     private void HanleSpeeds()
     {
         Vector2 inputVector = InputManager.Instance.InputMoveVector();
 
-        // Set the status
         bool sprintInput = InputManager.Instance.IsSprint();
-        // Nếu người chơi giữ nút chạy và còn đủ stamina, và được phép chạy
-        if (sprintInput && PlayerHealth.Instance.CanSprint())
+        if (sprintInput)
         {
-            isSprinting = true;
-            isCrouching = false;
-            PlayerHealth.Instance.DrainStamina(); // Trừ stamina
+            IsSprinting = true;
+            IsCrouching = false;
         }
         else
         {
-            isSprinting = false;
-            isCrouching = false;
+            IsSprinting = false;
+            IsCrouching = false;
         }
 
-        // Nếu không chạy, thì hồi stamina
-        if (!isSprinting)
+        if (!IsCrouching && !IsSprinting)
         {
-            PlayerHealth.Instance.RegenStamina();
+            IsWalking = true;
+        }
+        else
+        {
+            IsWalking = false;
         }
 
-        if (!isCrouching && !isSprinting)
-        {
-            isWalking = true;
-        } else isWalking = false;
+        if (inputVector == Vector2.zero) IsSprinting = false;
 
-        if(inputVector == Vector2.zero) isSprinting = false;
-
-        //Handle the speed
-        if (isWalking) currentSpeed = walkSpeed;
-        if(isSprinting && inputVector.y > 0.0f) currentSpeed = runSpeed;
-        else if(isSprinting && inputVector.y < 0.0f) currentSpeed = runBackSpeed;
-        if (isWalking && inputVector.y > 0.0f) currentSpeed = walkSpeed;
-        else if (isWalking && inputVector.y < 0.0f) currentSpeed = walkBackSpeed;
-        if (isCrouching && inputVector.y > 0.0f) currentSpeed = crouchSpeed;
-        else if (isCrouching && inputVector.y < 0.0f) currentSpeed = crouchBackSpeed;
+        if (IsWalking) currentSpeed = walkSpeed;
+        if (IsSprinting && inputVector.y > 0.0f) currentSpeed = runSpeed;
+        else if (IsSprinting && inputVector.y < 0.0f) currentSpeed = runBackSpeed;
+        if (IsWalking && inputVector.y > 0.0f) currentSpeed = walkSpeed;
+        else if (IsWalking && inputVector.y < 0.0f) currentSpeed = walkBackSpeed;
+        if (IsCrouching && inputVector.y > 0.0f) currentSpeed = crouchSpeed;
+        else if (IsCrouching && inputVector.y < 0.0f) currentSpeed = crouchBackSpeed;
     }
 
     private void HandleInputAndMove()
     {
-        // Input
         Vector2 inputVector = InputManager.Instance.InputMoveVector();
         currentInputVector = Vector2.SmoothDamp(currentInputVector, inputVector, ref smoothInputVelocity, smoothInputSpeed);
 
-        // Move
         moveDirection = (currentInputVector.y * transform.forward + currentInputVector.x * transform.right).normalized;
         characterController.Move(moveDirection * currentSpeed * Time.deltaTime);
-        characterController.Move(transform.up * velocityY *Time.deltaTime);
+        characterController.Move(transform.up * velocityY * Time.deltaTime);
     }
 
     private void Look()
     {
         Vector2 lookVector = InputManager.Instance.InputLookVector();
-        float mouseX = lookVector.x * Time.deltaTime *sensX*SettingsMenuManager.Instance.MouseHorizontal;
+        float mouseX = lookVector.x * Time.deltaTime * sensX * SettingsMenuManager.Instance.MouseHorizontal;
         float mouseY = lookVector.y * Time.deltaTime * sensY * SettingsMenuManager.Instance.MouseHorizontal;
         yRotation += mouseX;
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -60f, 60f);
 
-        // Setting value to the object
         transform.rotation = Quaternion.Euler(0, yRotation, 0);
         centerSpinePos.rotation = Quaternion.Euler(xRotation, yRotation, 0);
     }
@@ -312,11 +314,60 @@ public class PlayerController : MonoBehaviour
     {
         playerCamera.transform.position = cameraHolder.transform.position;
         playerCamera.transform.rotation = cameraHolder.transform.rotation;
-
     }
-    
+
     public void GunShoot()
     {
         playerAnimator.SetTrigger("Shoot");
+    }
+
+    void OnEnable()
+    {
+       PlayerEvents.OnDie += Death;
+    }
+
+    void OnDisable()
+    {
+        PlayerEvents.OnDie -= Death;
+    }
+
+    private void Death()
+    {
+        this.enabled = false;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        GUIManager.Instance.ShowHUD(false);
+        StartCoroutine(DeathCameraEffect());
+    }
+
+    IEnumerator DeathCameraEffect()
+    {
+        float duration = 3f;
+        float elapsed = 0f;
+
+        Quaternion startRot = playerCamera.transform.rotation;
+        Quaternion endRot = Quaternion.Euler(startRot.eulerAngles + new Vector3(90, 0, 0));
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            playerCamera.transform.rotation = Quaternion.Slerp(startRot, endRot, elapsed / duration);
+            yield return null;
+        }
+        PauseMenuManager.Instance.ShowGameOverPanel(true);
+    }
+
+    public void InitPlayer()
+    {
+        GameObject spawnPoint = GameObject.FindGameObjectWithTag("PlayerSpawnPos");
+        transform.position = spawnPoint.transform.position;
+    }
+    public void ResetPlayer()
+    {
+        InitPlayer();
+        gameObject.SetActive(true);
+        this.enabled = true;
+        playerHealth.ResetHealth();
+        PlayerItem.Instance.ResetPlayerItems();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Data;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -93,31 +94,28 @@ public class PauseMenuManager : MonoBehaviour
         Time.timeScale = 1f;
         pauseMenuUI.SetActive(false);
         gameOverUI.SetActive(false);
-        PlayerManager.Instance.ResetPlayer();
-        SceneManager.LoadSceneAsync("GamePlayLv1");
+        SceneManager.LoadSceneAsync(GameConstants.SCENE_GAMEPLAY_LV1);
         GUIManager.Instance.Reset();
         InventoryManager.Instance.Reset();
+        PlayerController.Instance.ResetPlayer();
     }
 
     public void ReturnToMenu()
     { 
-        Time.timeScale = 1f; // Reset time scale trước khi restart
-        AudioManager.Instance.Reset();
+        Time.timeScale = 1f;
+        AudioManager.Instance.StopSound();
         Instance = null;
         Destroy(GUIManager.Instance.gameObject);
-        Destroy(PlayerManager.Instance.gameObject);
+        Destroy(PlayerController.Instance.gameObject);
         Destroy(CameraManager.Instance.gameObject);
-        //SceneManager.LoadSceneAsync("MainMenu");
-        SceneManager.LoadScene("MainMenu");
-
-
+        SceneManager.LoadScene(GameConstants.MAIN_MENU);
     }
 
     public void ShowGameOverPanel(bool isShow)
     {
-        AudioManager.Instance.Reset();
+        AudioManager.Instance.StopSound();
         gameOverUI.SetActive(isShow);
-        Time.timeScale = 0;
+        Time.timeScale = 0f;
     }
 
     public void ShowSettingsPanel(bool isShow)

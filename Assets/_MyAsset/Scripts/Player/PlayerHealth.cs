@@ -1,120 +1,53 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerHealth : MonoBehaviour
 {
-    [SerializeField] private float health = 100f;
-    private float maxHealth = 100f;
-    private float stamina = 100f;
-    private float maxStamina = 100f;
-    [SerializeField] private float staminaDrainRate = 20f; // Stamina mất mỗi giây khi chạy
-    [SerializeField] private float staminaRegenRate = 10f; // Stamina hồi mỗi giây khi không chạy
-    [SerializeField] private float sprintMinStamina = 40f; // Bao nhiêu % stamina mới cho chạy lại
-    [SerializeField] AudioClip cantSprintSound;
-    private bool canSprint = true;
+    [SerializeField] private float currentHealth = 100f;
+    [SerializeField] private float maxHealth = 100f;
+    private bool isDead = false;
 
-
-    public static PlayerHealth Instance;
-
-    private void Awake()
+    void Start()
     {
-        // Đảm bảo chỉ có một instance của PlayerManager trong game.
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Giữ player qua các scene.
-        }
-        else
-        {
-            Destroy(gameObject); // Nếu đã có instance khác, xóa đối tượng hiện tại.
-        }
-    }
-    void Update()
-    {
-        if(health <= 0)
-        {
-            GetComponent<PlayerController>().enabled = false;
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-            GUIManager.Instance.ShowHUD(false);
-            gameObject.SetActive(false);
-            PauseMenuManager.Instance.ShowGameOverPanel(true);
-        }
-
-        if (health > 100)
-        {
-            health = 100;
-        }
-        
+        ResetHealth();
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float amount)
     {
-        health -= damage * SettingsMenuManager.Instance.DamageMultiplierSetting;
-        AudioManager.Instance.HurtSound();
-        GUIManager.Instance.ShowScreenTakeDmg();
-    }
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        PlayerEvents.TriggerTakeDamage(currentHealth / maxHealth);
 
-    public void DrainStamina()
-    {
-        stamina -= staminaDrainRate * Time.deltaTime;
-        stamina = Mathf.Clamp(stamina, 0f, maxStamina);
-        if (stamina <= 0f)
+        if (currentHealth <= 0 && !isDead)
         {
-            canSprint = false;
-            AudioManager.Instance.PlayEffect(cantSprintSound);
+            PlayerEvents.TriggerDie();
         }
-            
-    }
-
-    public void RegenStamina()
-    {
-        stamina += staminaRegenRate * Time.deltaTime;
-        stamina = Mathf.Clamp(stamina, 0f, maxStamina);
-        if (!canSprint && stamina >= sprintMinStamina)
-        {
-            canSprint = true;
-        }
-    }
-
-    public float GetStamina()
-    {
-        return stamina;
     }
 
     public float GetHealth()
     {
-        return health;
+        return currentHealth;
     }
 
-    public void AddHealth(float amount)
+    public void UpdateHealth(float amount)
     {
-        health+= amount;
-        AudioManager.Instance.HealthPickupSound();
-        GUIManager.Instance.ShowScreenHealing();
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        PlayerEvents.TriggerHeal();
+        PlayerEvents.TriggerHealthChange(currentHealth / maxHealth);
     }
 
     public void SetHealth(float amount)
     {
-        health = amount;
+        currentHealth = amount;
     }
 
-    public float GetStaminaFillAmount()
+    public void ResetHealth()
     {
-        return stamina / maxStamina;
-    }
-
-    public float GetHealthFillAmount()
-    {
-        return health / maxHealth;
-    }
-
-    public bool CanSprint() => canSprint;
-
-    public void Reset()
-    {
-        health = maxHealth;
-        stamina = maxStamina;
+        currentHealth = maxHealth;
+        PlayerEvents.TriggerHealthChange(currentHealth / maxHealth);
     }
 }

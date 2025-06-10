@@ -60,7 +60,7 @@ public class EnemyAnimationHandle : MonoBehaviour
     {
         if (isDead) return;
         agent.speed = 0f;
-        transform.LookAt(PlayerManager.Instance.player.transform);
+        transform.LookAt(PlayerController.Instance.transform);
         animator.SetTrigger("Attack");
         isRunning = false;
         isWalking = false;

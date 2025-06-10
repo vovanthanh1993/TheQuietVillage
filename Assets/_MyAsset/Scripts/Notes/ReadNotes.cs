@@ -46,7 +46,7 @@ public class ReadNotes : MonoBehaviour
             GUIManager.Instance.ShowNoteUI(false, "");
             GUIManager.Instance.ShowHUD(true);
             isReading = false;
-            PlayerManager.Instance.gameObject.SetActive(true);
+            PlayerController.Instance.gameObject.SetActive(true);
             InputManager.Instance.InputSystem.Player.Enable();
             InputManager.Instance.InputSystem.FindAction("UI/Escape").Enable();
             if (TutorialManager.Instance != null)
@@ -62,7 +62,7 @@ public class ReadNotes : MonoBehaviour
             AudioManager.Instance.OpenNote();
             GUIManager.Instance.ShowHUD(false);
             GUIManager.Instance.ShowPickUpText(false);
-            PlayerManager.Instance.gameObject.SetActive(false);
+            PlayerController.Instance.gameObject.SetActive(false);
             InputManager.Instance.InputSystem.Player.Disable();
             InputManager.Instance.InputSystem.FindAction("UI/Escape").Disable();
             Time.timeScale = 0;

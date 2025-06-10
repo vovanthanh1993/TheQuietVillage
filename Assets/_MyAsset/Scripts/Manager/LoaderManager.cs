@@ -32,7 +32,7 @@ public class LoaderManager : MonoBehaviour
     // Coroutine để tải scene không đồng bộ
     private IEnumerator LoadSceneAsync(string sceneToLoad)
     {
-        AudioManager.Instance.Reset();
+        AudioManager.Instance.StopSound();
         // ✅ Bắt đầu: hiện thông báo chuyển cảnh
         if (loadingText != null)
         {

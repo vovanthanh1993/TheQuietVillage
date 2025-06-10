@@ -28,11 +28,7 @@ public class AttackState : EnemyState
         float distance = Vector3.Distance(enemy.transform.position, enemy.player.position);
         if (distance <= enemy.attackRangeDamage)
         {
-            PlayerHealth playerHealth = enemy.player.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(enemy.attackDamage);
-            }
+             PlayerController.Instance.PlayerHealth.TakeDamage(enemy.attackDamage);
         }
 
         yield return new WaitForSeconds(enemy.attackRate);

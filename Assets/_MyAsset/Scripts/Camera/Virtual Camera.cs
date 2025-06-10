@@ -8,7 +8,7 @@ public class VirtualCamera: MonoBehaviour
     void Start()
     {
         InputManager.Instance.InputSystem.Disable();
-        PlayerManager.Instance.player.gameObject.SetActive(false);
+        PlayerController.Instance.gameObject.SetActive(false);
         StartCoroutine(DestroyAfterDelay(2f));
     }
 
@@ -16,9 +16,9 @@ public class VirtualCamera: MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         Destroy(gameObject);
-        PlayerManager.Instance.player.gameObject.SetActive(true);
+        PlayerController.Instance.gameObject.SetActive(true);
         InputManager.Instance.InputSystem.Enable();
-        PlayerManager.Instance.InitPlayer();
+        PlayerController.Instance.InitPlayer();
         TutorialManager.Instance.ShowUseFlashLight();
     }
 }

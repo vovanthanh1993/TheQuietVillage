@@ -12,8 +12,21 @@ public class HealthBar : MonoBehaviour
     {
         healthBarIM = GetComponent<Image>();
     }
-    void Update()
+
+    // Make this method public and match the event signature
+    public void UpdateHealthBar(float value)
     {
-        healthBarIM.fillAmount = PlayerHealth.Instance.GetHealthFillAmount();
+        healthBarIM.fillAmount = value;
+    }
+
+    void OnEnable()
+    {
+        // Subscribe to the event
+        PlayerEvents.OnHealthChanged += UpdateHealthBar;
+    }
+    void OnDisable()
+    {
+        // Unsubscribe from the event
+        PlayerEvents.OnHealthChanged -= UpdateHealthBar;
     }
 }

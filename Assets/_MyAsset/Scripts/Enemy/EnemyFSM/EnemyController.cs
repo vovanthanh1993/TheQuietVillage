@@ -4,7 +4,6 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour
 {
     private EnemyState currentState;
-
     public EnemyState CurrentState => currentState;
 
     [Header("References")]
@@ -39,11 +38,10 @@ public class EnemyController : MonoBehaviour
             waypoints.Add(child);
         }
 
-        player = PlayerManager.Instance.transform;
+        player = PlayerController.Instance.transform;
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         animationHandle = GetComponent<EnemyAnimationHandle>();
         enemyHealth = GetComponent<EnemyHealth>();
-
         ChangeState(new PatrolState(this));
     }
 
@@ -68,10 +66,6 @@ public class EnemyController : MonoBehaviour
     {
         if (enemyHealth.health <= 0) return;
         ChangeState(new HitState(this));
-        /*if (!(currentState is HitState))
-        {
-            ChangeState(new HitState(this));
-        }*/
     }
 
     public void HearSound(Vector3 soundPos)

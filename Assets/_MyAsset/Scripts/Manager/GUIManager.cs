@@ -256,4 +256,16 @@ public class GUIManager : MonoBehaviour
         screenTakeDmg.SetActive(false);
         ResetQuest();
     }
+
+    void OnEnable()
+    {
+        PlayerEvents.OnTakeDamage += ShowScreenTakeDmg;
+        PlayerEvents.OnHeal += ShowScreenHealing;
+    }
+
+    void OnDisable()
+    {
+        PlayerEvents.OnTakeDamage -= ShowScreenTakeDmg;
+        PlayerEvents.OnHeal -= ShowScreenHealing;
+    }
 }

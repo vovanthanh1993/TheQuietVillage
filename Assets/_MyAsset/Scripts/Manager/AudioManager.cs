@@ -43,13 +43,11 @@ public class AudioManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Khởi tạo map scene → nhạc
             sceneMusicMap = new Dictionary<string, AudioClip>
             {
                 { "MainMenu", menuMusic },
                 { "GamePlayLv1", gamePlayLv1Music },
                 { "GamePlayLv2", gamePlayLv2Music },
-                // thêm tên scene và nhạc tương ứng ở đây
             };
 
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -75,7 +73,7 @@ public class AudioManager : MonoBehaviour
         {
             musicSource.Stop();
         }
-       
+
     }
 
     public void PlayFootSteep()
@@ -85,7 +83,7 @@ public class AudioManager : MonoBehaviour
         footStepIndex = 1 - footStepIndex;
     }
 
-    public void Reset()
+    public void StopSound()
     {
         musicSource.Stop();
         soundfxSource.Stop();
@@ -147,13 +145,19 @@ public class AudioManager : MonoBehaviour
         soundfxSource.Play();
     }
 
-    public void HurtSound()
+    public void PlayHurtSound()
     {
         soundfxSource.clip = hurtSound[Random.Range(0, hurtSound.Length)];
         soundfxSource.Play();
     }
 
     public void JumpScareSound()
+    {
+        soundfxSource.clip = jumpScareSound;
+        soundfxSource.Play();
+    }
+
+    public void PlayDieSound()
     {
         soundfxSource.clip = jumpScareSound;
         soundfxSource.Play();
@@ -178,5 +182,15 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        PlayerEvents.OnTakeDamage += PlayHurtSound;
+        PlayerEvents.OnDie += PlayDieSound;
+    }
 
+    void OnDisable()
+    {
+        PlayerEvents.OnTakeDamage -= PlayHurtSound;
+        PlayerEvents.OnDie -= PlayDieSound;
+    }
 }

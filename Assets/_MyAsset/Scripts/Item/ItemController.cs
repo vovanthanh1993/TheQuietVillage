@@ -11,11 +11,11 @@ public class ItemController : MonoBehaviour
         switch (item.itemType)
         {
             case Item.ItemType.Potion:
-                PlayerHealth.Instance.AddHealth(item.value);
+                PlayerController.Instance.PlayerHealth.UpdateHealth(item.value);
                 RemoveItem();
                 break;
             case Item.ItemType.Energy:
-                PlayerHealth.Instance.AddHealth(item.value);
+                PlayerController.Instance.PlayerHealth.UpdateHealth(item.value);
                 RemoveItem();
                 break;
         }
